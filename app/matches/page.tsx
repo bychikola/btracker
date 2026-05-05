@@ -122,7 +122,6 @@ function MatchesSkeleton() {
 
 export default function AllMatchesPage() {
   const { data, isLoading, error } = useTodayMatches({
-    Today: true,
     Limit: 1000
   })
 
