@@ -152,8 +152,8 @@ export function translate(text: string, type: 'team' | 'league' = 'team', enable
   const dictionary = type === 'team' ? translations.teams : translations.leagues
 
   // Точное совпадение
-  if (dictionary[text]) {
-    return dictionary[text]
+  if (text in dictionary) {
+    return dictionary[text as keyof typeof dictionary]
   }
 
   // Поиск частичного совпадения (для случаев типа "FC Barcelona" -> "Барселона")
