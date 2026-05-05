@@ -336,7 +336,12 @@ export async function fetchLiveOdds(gameId: string | number): Promise<{
       }
     } catch (error) {
       // Игнорируем 429 ошибки в консоли, они обрабатываются rate limiter
-      if (error?.response?.status !== 429) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status !== 429) {
+          console.error(`Error fetching live odds for game ${gameId}:`, error)
+        }
+      } else {
         console.error(`Error fetching live odds for game ${gameId}:`, error)
       }
       return null
