@@ -303,7 +303,7 @@ export async function getBetSlipHistory(): Promise<BetSlipWithItems[]> {
     if (!acc[item.bet_slip_id]) {
       acc[item.bet_slip_id] = []
     }
-    acc[item.bet_slip_id].push(item)
+    acc[item.bet_slip_id]!.push(item)
     return acc
   }, {} as Record<string, typeof allItems>)
 
