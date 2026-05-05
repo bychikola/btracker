@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f0f0f;
+  --foreground: #ffffff;
+  --card-bg: #1a1a1a;
+  --card-hover: #252525;
+  --accent: #00e676;
+  --accent-hover: #00ff88;
+  --text-secondary: #a0a0a0;
+  --border: #2a2a2a;
+
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="light"] {
+  --background: #f5f5f5;
+  --foreground: #1a1a1a;
+  --card-bg: #ffffff;
+  --card-hover: #f8f8f8;
+  --accent: #e63946;
+  --accent-hover: #d62828;
+  --text-secondary: #5f6368;
+  --border: #e0e0e0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-hover: var(--card-hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --font-sans: var(--font-montserrat);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Скрытие скроллбара для горизонтальной прокрутки */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shimmer анимация для скелетонов */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    var(--card-hover) 0%,
+    var(--card-bg) 50%,
+    var(--card-hover) 100%
+  );
+  background-size: 200% 100%;
+}
