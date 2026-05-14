@@ -1,7 +1,6 @@
 'use client'
 
 import { Match } from '@/lib/types'
-import { cn } from '@/lib/utils'
 import { useLiveOddsContext } from '@/lib/contexts/live-odds-context'
 import { translateTeam, translateLeague } from '@/lib/translations'
 import { useTranslation } from '@/lib/contexts/translation-context'
@@ -9,6 +8,7 @@ import { FavoriteButton } from './favorite-button'
 import { FavoriteMatchData } from '@/lib/types/favorites'
 import { OddButton } from './odd-button'
 import { BetSlipMatchData } from '@/lib/types/bet-slip'
+import { Badge } from './ui/badge'
 
 interface LiveMatchCardProps {
   match: Match
@@ -19,20 +19,15 @@ export function LiveMatchCard({ match }: LiveMatchCardProps) {
   const score2 = match.score?.team2 ?? 0
   const { translateEnabled } = useTranslation()
 
-  // API уже возвращает правильный статус is_live
   const isActuallyLive = match.is_live
 
-  // Получаем Live-коэффициенты из контекста (один батч-запрос для всех матчей)
-  const { getOdds } = useLiveOddsContext()
+  const { getOdds, changedIds } = useLiveOddsContext()
   const liveOdds = getOdds(match.id)
+  const oddsChanged = changedIds.has(String(match.id))
 
-  // Используем Live-коэффициенты если они есть, иначе обычные из match
   const displayOdds = liveOdds?.odds || match.odds || { p1: 0, x: 0, p2: 0 }
-
-  // Проверяем, что коэффициенты валидны
   const hasValidOdds = displayOdds.p1 > 0 || displayOdds.x > 0 || displayOdds.p2 > 0
 
-  // Данные для избранного
   const favoriteData: FavoriteMatchData = {
     type: 'match',
     sport_type: match.sport_type,
@@ -43,7 +38,6 @@ export function LiveMatchCard({ match }: LiveMatchCardProps) {
     is_live: match.is_live,
   }
 
-  // Данные для купона
   const betSlipMatchData: BetSlipMatchData = {
     match_id: match.id,
     sport_type: match.sport_type,
@@ -55,102 +49,68 @@ export function LiveMatchCard({ match }: LiveMatchCardProps) {
   }
 
   return (
-    <div className="flex-shrink-0 w-80 bg-card-bg rounded-xl shadow-md border border-border p-4 snap-center hover:bg-card-hover transition-all">
-      {/* Шапка */}
+    <div className="flex-shrink-0 w-72 sm:w-80 bg-[var(--canvas)] rounded-[var(--radius-xl)] shadow-[var(--shadow-card)] p-4 snap-center hover:bg-[var(--canvas-soft)] transition-all border border-[var(--border)]">
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
-          <span className="text-xs font-bold text-accent">
-            {match.elapsed ? `${match.elapsed}'` : 'LIVE'}
-          </span>
-          <span className="text-xs text-text-secondary truncate max-w-[100px]">
+          <Badge variant="live" size="sm">{match.elapsed ? `${match.elapsed}'` : 'LIVE'}</Badge>
+          <span className="text-[11px] text-[var(--mute)] truncate max-w-[100px] font-medium">
             {translateLeague(match.league_name, translateEnabled)}
           </span>
         </div>
         <FavoriteButton
-          favoriteData={{
-            favorite_type: 'match',
-            item_id: match.id,
-            item_data: favoriteData,
-          }}
+          favoriteData={{ favorite_type: 'match', item_id: match.id, item_data: favoriteData }}
           size="sm"
         />
       </div>
 
-      {/* Команды и счет */}
-      <div className="space-y-3">
-        {/* Команда 1 */}
+      {/* Teams & Score */}
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-card-hover flex-shrink-0 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-[var(--canvas-soft)] flex-shrink-0 flex items-center justify-center">
               {match.team1.logo ? (
-                <img src={match.team1.logo} alt={match.team1.name} className="w-5 h-5" />
+                <img src={match.team1.logo} alt="" className="w-4 h-4" />
               ) : (
-                <span className="text-xs font-bold text-text-secondary">
-                  {match.team1.name.charAt(0)}
-                </span>
+                <span className="text-[10px] font-bold text-[var(--mute)]">{match.team1.name.charAt(0)}</span>
               )}
             </div>
-            <span className="text-sm font-medium text-foreground truncate">
+            <span className="text-sm font-semibold text-[var(--ink)] truncate">
               {translateTeam(match.team1.name, translateEnabled)}
             </span>
           </div>
-          <span className="text-xl font-bold text-accent ml-2">
-            {score1}
-          </span>
+          <span className="text-xl font-[800] text-[var(--primary)] ml-2">{score1}</span>
         </div>
 
-        {/* Команда 2 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-card-hover flex-shrink-0 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-[var(--canvas-soft)] flex-shrink-0 flex items-center justify-center">
               {match.team2.logo ? (
-                <img src={match.team2.logo} alt={match.team2.name} className="w-5 h-5" />
+                <img src={match.team2.logo} alt="" className="w-4 h-4" />
               ) : (
-                <span className="text-xs font-bold text-text-secondary">
-                  {match.team2.name.charAt(0)}
-                </span>
+                <span className="text-[10px] font-bold text-[var(--mute)]">{match.team2.name.charAt(0)}</span>
               )}
             </div>
-            <span className="text-sm font-medium text-foreground truncate">
+            <span className="text-sm font-semibold text-[var(--ink)] truncate">
               {translateTeam(match.team2.name, translateEnabled)}
             </span>
           </div>
-          <span className="text-xl font-bold text-accent ml-2">
-            {score2}
-          </span>
+          <span className="text-xl font-[800] text-[var(--primary)] ml-2">{score2}</span>
         </div>
       </div>
 
-      {/* Коэффициенты (компактно) */}
-      <div className="mt-3 pt-3 border-t border-border">
+      {/* Odds */}
+      <div className="mt-3 pt-3 border-t border-[var(--border)]">
         {hasValidOdds ? (
           <div className="flex gap-2">
-            <OddButton
-              label="П1"
-              value={displayOdds.p1}
-              outcome="home"
-              matchData={betSlipMatchData}
-            />
+            <OddButton label="П1" value={displayOdds.p1} outcome="home" matchData={betSlipMatchData} changed={oddsChanged} />
             {displayOdds.x > 0 && (
-              <OddButton
-                label="X"
-                value={displayOdds.x}
-                outcome="draw"
-                matchData={betSlipMatchData}
-              />
+              <OddButton label="X" value={displayOdds.x} outcome="draw" matchData={betSlipMatchData} changed={oddsChanged} />
             )}
-            <OddButton
-              label="П2"
-              value={displayOdds.p2}
-              outcome="away"
-              matchData={betSlipMatchData}
-            />
+            <OddButton label="П2" value={displayOdds.p2} outcome="away" matchData={betSlipMatchData} changed={oddsChanged} />
           </div>
         ) : (
-          <div className="text-center text-xs text-text-secondary">
-            Коэффициенты недоступны
-          </div>
+          <div className="text-center text-[11px] text-[var(--mute)]">Коэффициенты недоступны</div>
         )}
       </div>
     </div>

@@ -59,7 +59,7 @@ export function TodayMatchesGrid({
     <div>
       {/* Состояние загрузки */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <MatchCardSkeleton key={i} />
           ))}
@@ -68,16 +68,16 @@ export function TodayMatchesGrid({
 
       {/* Ошибка */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <p className="text-red-800 font-medium mb-3">
+        <div className="glass border border-border rounded-xl p-4 sm:p-6 text-center">
+          <p className="text-accent font-medium mb-2 sm:mb-3 text-sm sm:text-base">
             Ошибка загрузки матчей
           </p>
-          <p className="text-sm text-red-600 mb-4">
+          <p className="text-xs sm:text-sm text-text-secondary mb-3 sm:mb-4">
             {error instanceof Error ? error.message : 'Не удалось загрузить данные'}
           </p>
           <button
             onClick={() => refetch()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-black rounded-lg hover:bg-accent-hover transition-colors text-sm touch-manipulation"
           >
             <RefreshCw className="w-4 h-4" />
             Повторить загрузку
@@ -87,8 +87,8 @@ export function TodayMatchesGrid({
 
       {/* Нет данных */}
       {!isLoading && !error && filteredMatches.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-12 text-center">
-          <p className="text-gray-600 text-lg">
+        <div className="glass border border-border rounded-xl p-8 sm:p-12 text-center">
+          <p className="text-text-secondary text-sm sm:text-base">
             {showLiveOnly
               ? 'Сейчас нет Live матчей'
               : sportType !== 'all'
@@ -103,7 +103,7 @@ export function TodayMatchesGrid({
       {!isLoading && !error && filteredMatches.length > 0 && (
         <div>
           <LiveOddsProvider matches={currentMatches}>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {currentMatches.map((match) => (
                 <MatchCard key={match.id} match={match} />
               ))}
@@ -112,27 +112,27 @@ export function TodayMatchesGrid({
 
           {/* Навигация */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="flex items-center justify-center gap-3 mt-4 sm:mt-6">
               <button
                 onClick={goToPrevPage}
                 disabled={currentPage === 0}
-                className="p-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed shadow rounded-full transition-colors"
+                className="p-2 bg-card-bg hover:bg-card-hover disabled:opacity-50 disabled:cursor-not-allowed shadow rounded-full transition-colors touch-manipulation"
                 aria-label="Предыдущая страница"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-700" />
+                <ChevronLeft className="w-5 h-5 text-foreground" />
               </button>
 
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-xs sm:text-sm text-text-secondary font-medium">
                 {currentPage + 1} / {totalPages}
               </span>
 
               <button
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages - 1}
-                className="p-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed shadow rounded-full transition-colors"
+                className="p-2 bg-card-bg hover:bg-card-hover disabled:opacity-50 disabled:cursor-not-allowed shadow rounded-full transition-colors touch-manipulation"
                 aria-label="Следующая страница"
               >
-                <ChevronRight className="w-5 h-5 text-gray-700" />
+                <ChevronRight className="w-5 h-5 text-foreground" />
               </button>
             </div>
           )}

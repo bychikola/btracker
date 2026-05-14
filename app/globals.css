@@ -1,80 +1,319 @@
 @import "tailwindcss";
 
+/* ─── Wise Design System: CSS Custom Properties ─── */
+
 :root {
-  --background: #0f0f0f;
-  --foreground: #ffffff;
-  --card-bg: #1a1a1a;
-  --card-hover: #252525;
-  --accent: #00e676;
-  --accent-hover: #00ff88;
-  --text-secondary: #a0a0a0;
-  --border: #2a2a2a;
+  /* Brand */
+  --primary: #9fe870;
+  --primary-hover: #cdffad;
+  --primary-neutral: #c5edab;
+  --primary-pale: #e2f6d5;
+  --primary-foreground: #0e0f0c;
 
-  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Surfaces */
+  --canvas: #ffffff;
+  --canvas-soft: #e8ebe6;
+
+  /* Text */
+  --ink: #0e0f0c;
+  --ink-deep: #163300;
+  --body: #454745;
+  --mute: #868685;
+
+  /* Semantic */
+  --positive: #2ead4b;
+  --positive-deep: #054d28;
+  --warning: #ffd11a;
+  --warning-deep: #b86700;
+  --warning-content: #4a3b1c;
+  --negative: #d03238;
+  --negative-deep: #a72027;
+  --negative-darkest: #a7000d;
+  --negative-bg: #320707;
+
+  /* Accent */
+  --accent-orange: #ffc091;
+  --accent-cyan: #38c8ff;
+
+  /* Border */
+  --border: rgba(14, 15, 12, 0.12);
+  --border-strong: rgba(14, 15, 12, 0.18);
+
+  /* Radius — Wise canonical: 24px pills */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* Shadows (subtle — surface contrast carries elevation) */
+  --shadow-card: 0 1px 3px rgba(14, 15, 12, 0.06);
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Transitions */
+  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-[data-theme="light"] {
-  --background: #f5f5f5;
-  --foreground: #1a1a1a;
-  --card-bg: #ffffff;
-  --card-hover: #f8f8f8;
-  --accent: #e63946;
-  --accent-hover: #d62828;
-  --text-secondary: #5f6368;
-  --border: #e0e0e0;
+/* ─── Dark Mode ─── */
+[data-theme="dark"] {
+  --primary: #9fe870;
+  --primary-hover: #b8f59e;
+  --primary-neutral: #3a4a2e;
+  --primary-pale: #1e2d16;
+  --primary-foreground: #0e0f0c;
+
+  --canvas: #0e0f0c;
+  --canvas-soft: #1a1c18;
+
+  --ink: #ffffff;
+  --ink-deep: #c5edab;
+  --body: #c5cdbf;
+  --mute: #6a6b68;
+
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
+  --positive: #2ead4b;
+  --positive-deep: #b4f5c8;
+  --negative: #d03238;
+  --negative-bg: #1f0d0d;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* ─── Tailwind v4 Theme Bridge ─── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card-bg: var(--card-bg);
-  --color-card-hover: var(--card-hover);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-text-secondary: var(--text-secondary);
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-card-bg: var(--canvas);
+  --color-card-hover: var(--canvas-soft);
+  --color-accent: var(--primary);
+  --color-accent-hover: var(--primary-hover);
+  --color-text-secondary: var(--body);
   --color-border: var(--border);
-  --font-sans: var(--font-montserrat);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-canvas-soft: var(--canvas-soft);
+  --color-mute: var(--mute);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-negative-bg: var(--negative-bg);
+  --font-sans: var(--font-sans);
+  --radius-xl: var(--radius-xl);
+  --radius-md: var(--radius-md);
+  --radius-sm: var(--radius-sm);
+  --radius-pill: var(--radius-pill);
 }
 
+/* ─── Base ─── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: var(--canvas-soft);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  transition: var(--transition-theme);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   transition-property: background-color, border-color, color;
-  transition-duration: 0.3s;
+  transition-duration: 0.25s;
   transition-timing-function: ease;
 }
 
-/* Скрытие скроллбара для горизонтальной прокрутки */
+/* ─── Scrollbar ─── */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Shimmer анимация для скелетонов */
+/* ─── Animations ─── */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
-
 .animate-shimmer {
   animation: shimmer 2s infinite;
   background: linear-gradient(
     90deg,
-    var(--card-hover) 0%,
-    var(--card-bg) 50%,
-    var(--card-hover) 100%
+    var(--canvas-soft) 0%,
+    var(--canvas) 50%,
+    var(--canvas-soft) 100%
   );
   background-size: 200% 100%;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--primary); }
+  50% { opacity: 0.7; box-shadow: 0 0 16px var(--primary); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─── Glassmorphism ─── */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+[data-theme="dark"] .glass {
+  background: rgba(14, 15, 12, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+/* ─── Gradients ─── */
+.gradient-accent {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+}
+.gradient-card {
+  background: linear-gradient(135deg, var(--canvas) 0%, var(--canvas-soft) 100%);
+}
+
+/* ─── Shadows ─── */
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(159, 232, 112, 0.3);
+}
+
+/* ─── Touch & Safe Area ─── */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ─── Wise-specific utilities ─── */
+.wise-card {
+  background: var(--canvas);
+  color: var(--ink);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.wise-card-sage {
+  background: var(--canvas-soft);
+  color: var(--ink);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.wise-card-dark {
+  background: var(--ink);
+  color: var(--primary);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.wise-card-green {
+  background: var(--primary-pale);
+  color: var(--ink);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.wise-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.wise-btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.wise-btn-secondary {
+  background: var(--canvas-soft);
+  color: var(--ink);
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.wise-btn-secondary:hover {
+  opacity: 0.85;
+}
+
+.wise-btn-outline {
+  background: var(--canvas);
+  color: var(--ink);
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  padding: 12px 24px;
+  border: 1px solid var(--border-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.wise-btn-outline:hover {
+  background: var(--canvas-soft);
+}
+
+.wise-badge-positive {
+  background: var(--primary-pale);
+  color: var(--positive-deep);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+}
+
+.wise-badge-negative {
+  background: var(--negative-bg);
+  color: var(--negative);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+}
+
+.wise-input {
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: var(--font-sans);
+  width: 100%;
+  outline: none;
+}
+.wise-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(159, 232, 112, 0.15);
+}
+.wise-input::placeholder {
+  color: var(--mute);
 }

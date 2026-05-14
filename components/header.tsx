@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Settings, Globe, User, LogOut, UserCircle, X, Sun, Moon, Languages, Star, ShoppingCart, Menu, BarChart3 } from 'lucide-react'
+import { Search, Settings, Globe, User, LogOut, UserCircle, X, Sun, Moon, Languages, Star, ShoppingCart, Menu, BarChart3, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useAuth } from '@/lib/contexts/auth-context-supabase'
@@ -14,6 +14,7 @@ import { SearchModal } from './search-modal'
 import { BetSlipModal } from './bet-slip-modal'
 import { MobileMenu } from './mobile-menu'
 import { PendingBetsBadge } from './pending-bets-badge'
+import { Button } from './ui/button'
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
@@ -46,50 +47,64 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-card-bg text-foreground shadow-lg border-b border-border">
+      <header className="sticky top-0 z-50 bg-[var(--canvas)] border-b border-[var(--border)] safe-area-top">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Левая часть - Логотип и меню */}
-            <div className="flex items-center gap-4">
-              {/* Burger menu button (mobile only) */}
+          <div className="flex items-center justify-between h-[72px]">
+            {/* Left — Brand & Nav */}
+            <div className="flex items-center gap-6">
               <button
                 onClick={() => setShowMobileMenu(true)}
-                className="md:hidden p-2 hover:bg-card-hover rounded-lg transition-colors"
+                className="md:hidden p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-md)] transition-colors"
               >
                 <Menu className="w-5 h-5" />
               </button>
 
-              <Link href="/" className="text-xl md:text-2xl font-bold text-accent">
-                СТАВКИ
+              <Link href="/" className="flex items-center gap-2">
+                <span className="text-2xl font-[900] text-[var(--primary)] tracking-tight">
+                  bTracker
+                </span>
               </Link>
 
-              <nav className="hidden md:flex items-center gap-6">
-                <Link href="/" className="text-sm hover:text-accent transition-colors">
+              <nav className="hidden md:flex items-center gap-1">
+                <Link
+                  href="/"
+                  className="px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors"
+                >
                   Спорт
                 </Link>
-                <Link href="/live" className="text-sm hover:text-accent transition-colors flex items-center gap-1">
-                  <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+                <Link
+                  href="/live"
+                  className="px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4 text-[var(--primary)]" />
                   Live
                 </Link>
                 {isAuthenticated && (
                   <>
-                    <Link href="/favorites" className="text-sm hover:text-accent transition-colors flex items-center gap-1">
+                    <Link
+                      href="/favorites"
+                      className="px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors flex items-center gap-2"
+                    >
                       <Star className="w-4 h-4" />
                       Избранное
                       {favoritesCount > 0 && (
-                        <span className="ml-1 bg-accent text-black text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                        <span className="bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-bold rounded-[var(--radius-pill)] px-1.5 py-0.5 min-w-[20px] text-center">
                           {favoritesCount}
                         </span>
                       )}
                     </Link>
-                    <Link href="/bets" className="text-sm hover:text-accent transition-colors flex items-center gap-1">
+                    <Link
+                      href="/bets"
+                      className="px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors flex items-center gap-2"
+                    >
                       <ShoppingCart className="w-4 h-4" />
-                      Мои ставки
-                      <div className="relative">
-                        <PendingBetsBadge />
-                      </div>
+                      Ставки
+                      <PendingBetsBadge />
                     </Link>
-                    <Link href="/stats" className="text-sm hover:text-accent transition-colors flex items-center gap-1">
+                    <Link
+                      href="/stats"
+                      className="px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors flex items-center gap-2"
+                    >
                       <BarChart3 className="w-4 h-4" />
                       Статистика
                     </Link>
@@ -98,132 +113,111 @@ export function Header() {
               </nav>
             </div>
 
-            {/* Правая часть - Действия */}
-            <div className="flex items-center gap-3">
+            {/* Right — Actions */}
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowSearchModal(true)}
-                className="p-2 hover:bg-card-hover rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-full)] transition-colors"
               >
                 <Search className="w-5 h-5" />
               </button>
 
-              {/* Избранное */}
               {isAuthenticated && (
-                <Link
-                  href="/favorites"
-                  className="relative p-2 hover:bg-card-hover rounded-lg transition-colors"
-                  title="Избранное"
-                >
-                  <Star className="w-5 h-5" />
-                  {favoritesCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-accent text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {favoritesCount > 9 ? '9+' : favoritesCount}
-                    </span>
-                  )}
-                </Link>
+                <>
+                  <Link
+                    href="/favorites"
+                    className="p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-full)] transition-colors relative"
+                    title="Избранное"
+                  >
+                    <Star className="w-5 h-5" />
+                    {favoritesCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold rounded-[var(--radius-full)] w-[18px] h-[18px] flex items-center justify-center">
+                        {favoritesCount > 9 ? '9+' : favoritesCount}
+                      </span>
+                    )}
+                  </Link>
+
+                  <button
+                    onClick={() => setShowBetSlipModal(true)}
+                    className="xl:hidden p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-full)] transition-colors relative"
+                    title="Купон"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {itemsCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold rounded-[var(--radius-full)] w-[18px] h-[18px] flex items-center justify-center">
+                        {itemsCount > 9 ? '9+' : itemsCount}
+                      </span>
+                    )}
+                  </button>
+                </>
               )}
 
-              {/* Купон (только на мобильных) */}
-              {isAuthenticated && (
-                <button
-                  onClick={() => setShowBetSlipModal(true)}
-                  className="xl:hidden relative p-2 hover:bg-card-hover rounded-lg transition-colors"
-                  title="Купон"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {itemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-accent text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {itemsCount > 9 ? '9+' : itemsCount}
-                    </span>
-                  )}
-                </button>
-              )}
-
-              <button className="p-2 hover:bg-card-hover rounded-lg transition-colors">
-                <Globe className="w-5 h-5" />
-              </button>
-
+              {/* Settings */}
               <div className="relative">
                 <button
                   onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                  className="p-2 hover:bg-card-hover rounded-lg transition-colors"
+                  className="p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-full)] transition-colors"
                 >
                   <Settings className="w-5 h-5" />
                 </button>
 
-                {/* Меню настроек */}
                 {showSettingsMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-card-bg rounded-lg shadow-xl py-2 border border-border">
-                    <div className="px-4 py-3 border-b border-border">
-                      <p className="text-sm font-medium text-foreground">Настройки</p>
+                  <div className="absolute right-0 mt-2 w-56 bg-[var(--canvas)] rounded-[var(--radius-xl)] shadow-lg py-2 border border-[var(--border)]">
+                    <div className="px-5 py-3 border-b border-[var(--border)]">
+                      <p className="text-sm font-semibold text-[var(--ink)]">Настройки</p>
                     </div>
                     <button
-                      onClick={() => {
-                        toggleTheme()
-                        setShowSettingsMenu(false)
-                      }}
-                      className="flex items-center justify-between w-full px-4 py-2 text-sm text-foreground hover:bg-card-hover transition-colors"
+                      onClick={() => { toggleTheme(); setShowSettingsMenu(false) }}
+                      className="flex items-center justify-between w-full px-5 py-3 text-sm text-[var(--ink)] hover:bg-[var(--canvas-soft)] transition-colors"
                     >
-                      <div className="flex items-center gap-2">
-                        {theme === 'dark' ? (
-                          <Moon className="w-4 h-4" />
-                        ) : (
-                          <Sun className="w-4 h-4" />
-                        )}
+                      <div className="flex items-center gap-3">
+                        {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                         <span>Тема</span>
                       </div>
-                      <span className="text-xs text-text-secondary">
-                        {theme === 'dark' ? 'Темная' : 'Светлая'}
-                      </span>
+                      <span className="text-xs text-[var(--mute)]">{theme === 'dark' ? 'Темная' : 'Светлая'}</span>
                     </button>
                     <button
-                      onClick={() => {
-                        toggleTranslation()
-                        setShowSettingsMenu(false)
-                      }}
-                      className="flex items-center justify-between w-full px-4 py-2 text-sm text-foreground hover:bg-card-hover transition-colors"
+                      onClick={() => { toggleTranslation(); setShowSettingsMenu(false) }}
+                      className="flex items-center justify-between w-full px-5 py-3 text-sm text-[var(--ink)] hover:bg-[var(--canvas-soft)] transition-colors"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Languages className="w-4 h-4" />
-                        <span>Перевод команд</span>
+                        <span>Перевод</span>
                       </div>
-                      <span className="text-xs text-text-secondary">
-                        {translateEnabled ? 'Вкл' : 'Выкл'}
-                      </span>
+                      <span className="text-xs text-[var(--mute)]">{translateEnabled ? 'Вкл' : 'Выкл'}</span>
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Авторизация */}
+              {/* Auth */}
               {isAuthenticated ? (
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-card-hover rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-xl)] transition-colors"
                   >
                     {user?.avatar ? (
-                      <img src={user.avatar} alt={user.username} className="w-8 h-8 rounded-full" />
+                      <img src={user.avatar} alt={user.username} className="w-8 h-8 rounded-[var(--radius-full)]" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                        <span className="text-sm font-bold text-black">
+                      <div className="w-8 h-8 rounded-[var(--radius-full)] bg-[var(--primary)] flex items-center justify-center">
+                        <span className="text-sm font-bold text-[var(--primary-foreground)]">
                           {user?.username.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
-                    <span className="hidden md:block text-sm font-medium">{user?.username}</span>
+                    <span className="hidden md:block text-sm font-semibold">{user?.username}</span>
                   </button>
 
-                  {/* Выпадающее меню */}
                   {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-56 bg-card-bg rounded-lg shadow-xl py-2 border border-border">
-                      <div className="px-4 py-3 border-b border-border">
-                        <p className="text-sm font-medium text-foreground">{user?.username}</p>
-                        <p className="text-xs text-text-secondary">{user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 bg-[var(--canvas)] rounded-[var(--radius-xl)] shadow-lg py-2 border border-[var(--border)]">
+                      <div className="px-5 py-3 border-b border-[var(--border)]">
+                        <p className="text-sm font-semibold text-[var(--ink)]">{user?.username}</p>
+                        <p className="text-xs text-[var(--mute)]">{user?.email}</p>
                       </div>
                       <Link
                         href="/profile"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-card-hover transition-colors"
+                        className="flex items-center gap-3 px-5 py-3 text-sm text-[var(--ink)] hover:bg-[var(--canvas-soft)] transition-colors"
                         onClick={() => setShowUserMenu(false)}
                       >
                         <UserCircle className="w-4 h-4" />
@@ -231,7 +225,7 @@ export function Header() {
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-accent hover:bg-card-hover transition-colors"
+                        className="flex items-center gap-3 w-full px-5 py-3 text-sm text-[var(--negative)] hover:bg-[var(--canvas-soft)] transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         Выйти
@@ -240,36 +234,36 @@ export function Header() {
                   )}
                 </div>
               ) : (
-                <div className="hidden md:flex items-center gap-2 ml-2">
-                  <button
+                <div className="flex items-center gap-2 ml-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowLoginModal(true)}
-                    className="px-4 py-2 text-sm border border-border hover:border-accent rounded-lg transition-colors"
+                    className="hidden md:inline-flex"
                   >
                     Войти
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => setShowRegisterModal(true)}
-                    className="px-4 py-2 text-sm bg-accent hover:bg-accent-hover text-black rounded-lg transition-colors font-medium"
+                    className="hidden md:inline-flex"
                   >
                     Регистрация
+                  </Button>
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="md:hidden p-2 hover:bg-[var(--canvas-soft)] rounded-[var(--radius-full)] transition-colors"
+                  >
+                    <User className="w-5 h-5" />
                   </button>
                 </div>
-              )}
-
-              {!isAuthenticated && (
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="md:hidden p-2 hover:bg-card-hover rounded-lg transition-colors"
-                >
-                  <User className="w-5 h-5" />
-                </button>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Модальные окна */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}

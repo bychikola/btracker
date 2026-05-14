@@ -15,6 +15,19 @@ export interface Score {
   team2: number
 }
 
+// Все рынки коэффициентов из API
+export interface MarketOdds {
+  label: string
+  outcomes: { name: string; value: number }[]
+}
+
+export interface MatchMarkets {
+  fullTimeResult: MarketOdds    // 1X2
+  doubleChance: MarketOdds | null      // Двойной шанс
+  totals: MarketOdds[]          // Тоталы (2.5, 1.5, 0.5, 3.5...)
+  other: MarketOdds[]           // Остальные рынки
+}
+
 export interface Match {
   id: string
   sport_type: string
@@ -24,9 +37,10 @@ export interface Match {
   team2: Team
   start_time: string
   is_live: boolean
-  elapsed?: number // Текущая минута матча для Live
+  elapsed?: number
   score?: Score
   odds: Odds
+  markets?: MatchMarkets        // Все рынки для матча
   is_favorite?: boolean
 }
 

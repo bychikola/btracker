@@ -25,12 +25,12 @@ export function useTodayMatches(
       Today: true,
       ...params,
     }),
-    // Автоматическое обновление для Live матчей
-    refetchInterval: isLive ? (options.refetchInterval ?? 30000) : false,
-    // Live матчи свежие 20 сек, обычные - 3 минуты
-    staleTime: isLive ? 20000 : 3 * 60 * 1000,
-    // Кэш Live матчей 1 мин, обычных - 5 минут
-    gcTime: isLive ? 60000 : 5 * 60 * 1000,
+    // Автоматическое обновление для Live матчей (увеличено до 60 сек)
+    refetchInterval: isLive ? (options.refetchInterval ?? 60000) : false,
+    // Live матчи свежие 45 сек, обычные - 3 минуты
+    staleTime: isLive ? 45000 : 3 * 60 * 1000,
+    // Кэш Live матчей 2 мин, обычных - 5 минут
+    gcTime: isLive ? 2 * 60 * 1000 : 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   })
 }
@@ -51,9 +51,9 @@ export function useLiveMatches(
       const matches = await fetchLiveMatches()
       return { matches, total: matches.length, hasMore: false }
     },
-    refetchInterval: options.refetchInterval ?? 30000,
-    staleTime: 20000,
-    gcTime: 60000, // Кэш 1 минута для live
+    refetchInterval: options.refetchInterval ?? 60000, // Увеличено до 60 сек
+    staleTime: 45000, // Увеличено до 45 сек
+    gcTime: 2 * 60 * 1000, // Кэш 2 минуты для live
     enabled: options.enabled ?? true,
   })
 }
@@ -96,9 +96,9 @@ export function useInfiniteMatches(
       return allPages.reduce((acc, page) => acc + page.matches.length, 0)
     },
     initialPageParam: 0,
-    refetchInterval: isLive ? 30000 : false,
-    staleTime: isLive ? 20000 : 3 * 60 * 1000,
-    gcTime: isLive ? 60000 : 5 * 60 * 1000,
+    refetchInterval: isLive ? 60000 : false, // Увеличено до 60 сек
+    staleTime: isLive ? 45000 : 3 * 60 * 1000, // Увеличено до 45 сек
+    gcTime: isLive ? 2 * 60 * 1000 : 5 * 60 * 1000, // Увеличено до 2 мин
   })
 }
 
@@ -127,7 +127,7 @@ export function useMatchesBySport(
 
 /**
  * Хук для получения Live-коэффициентов конкретного матча
- * Автоматически обновляется каждые 2 минуты
+ * Автоматически обновляется каждые 3 минуты
  */
 export function useLiveOdds(
   gameId: string | number | null,
@@ -139,8 +139,8 @@ export function useLiveOdds(
   return useQuery({
     queryKey: ['odds', 'live', gameId],
     queryFn: () => fetchLiveOdds(gameId!),
-    refetchInterval: options.refetchInterval ?? 120000, // Обновление каждые 2 минуты (увеличено)
-    staleTime: 60000,
+    refetchInterval: options.refetchInterval ?? 180000, // Обновление каждые 3 минуты (увеличено)
+    staleTime: 2 * 60 * 1000, // 2 минуты
     enabled: (options.enabled ?? true) && !!gameId,
     retry: 1, // Только одна повторная попытка
     retryDelay: 5000, // Задержка перед повтором 5 секунд
@@ -150,7 +150,7 @@ export function useLiveOdds(
 /**
  * Хук для получения Live-коэффициентов для нескольких матчей
  * Использует оптимизированный подход: сначала проверяет обновления, затем запрашивает только изменившиеся
- * Автоматически обновляется каждые 2 минуты
+ * Автоматически обновляется каждые 3 минуты
  */
 export function useMultipleLiveOdds(
   gameIds: (string | number)[],
@@ -162,8 +162,8 @@ export function useMultipleLiveOdds(
   return useQuery({
     queryKey: ['odds', 'live', 'multiple', gameIds.sort().join(',')],
     queryFn: () => fetchMultipleLiveOdds(gameIds),
-    refetchInterval: options.refetchInterval ?? 120000, // Обновление каждые 2 минуты (увеличено)
-    staleTime: 60000,
+    refetchInterval: options.refetchInterval ?? 180000, // Обновление каждые 3 минуты (увеличено)
+    staleTime: 2 * 60 * 1000, // 2 минуты
     enabled: (options.enabled ?? true) && gameIds.length > 0,
     retry: 1, // Только одна повторная попытка
     retryDelay: 5000, // Задержка перед повтором 5 секунд

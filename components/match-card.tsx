@@ -15,35 +15,23 @@ import { OddButton } from './odd-button'
 import { BetSlipMatchData } from '@/lib/types/bet-slip'
 import { memo } from 'react'
 import Link from 'next/link'
+import { Card, CardContent } from './ui/card'
+import { Badge } from './ui/badge'
 
 interface MatchCardProps {
   match: Match
 }
 
-const sportColors: Record<string, string> = {
-  football: 'bg-green-500',
-  hockey: 'bg-cyan-500',
-  tennis: 'bg-yellow-500',
-  basketball: 'bg-orange-500',
-  esports: 'bg-purple-500',
-  volleyball: 'bg-pink-500',
-  boxing: 'bg-red-500',
-}
-
 export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
   const { translateEnabled } = useTranslation()
 
-  // API уже возвращает правильный статус is_live
   const isActuallyLive = match.is_live
 
-  // Получаем Live-коэффициенты из контекста (один батч-запрос для всех матчей)
-  const { getOdds } = useLiveOddsContext()
+  const { getOdds, changedIds } = useLiveOddsContext()
   const liveOdds = isActuallyLive ? getOdds(match.id) : null
+  const oddsChanged = changedIds.has(String(match.id))
 
-  // Используем Live-коэффициенты если они есть, иначе обычные из match
   const displayOdds = liveOdds?.odds || match.odds || { p1: 0, x: 0, p2: 0 }
-
-  // Проверяем, что коэффициенты валидны
   const hasValidOdds = displayOdds.p1 > 0 || displayOdds.x > 0 || displayOdds.p2 > 0
 
   const formatTime = () => {
@@ -58,7 +46,6 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
     }
   }
 
-  // Данные для избранного
   const favoriteData: FavoriteMatchData = {
     type: 'match',
     sport_type: match.sport_type,
@@ -69,7 +56,6 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
     is_live: match.is_live,
   }
 
-  // Данные для купона
   const betSlipMatchData: BetSlipMatchData = {
     match_id: match.id,
     sport_type: match.sport_type,
@@ -85,119 +71,98 @@ export const MatchCard = memo(function MatchCard({ match }: MatchCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.02 }}
-      className="bg-card-bg rounded-xl hover:bg-card-hover transition-all p-4 border border-border"
+      whileTap={{ scale: 0.98 }}
     >
-      {/* Время и избранное */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {isActuallyLive ? (
-            <div className="flex items-center gap-1.5 text-accent font-semibold text-sm">
-              <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
-              {formatTime()}
+      <Card padding="sm" className="hover:bg-[var(--canvas-soft)] transition-colors touch-manipulation">
+        <CardContent>
+          {/* Time & Favorite */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {isActuallyLive ? (
+                <Badge variant="live" size="sm">{formatTime()}</Badge>
+              ) : (
+                <div className="flex items-center gap-1.5 text-[var(--mute)] text-xs">
+                  <Clock className="w-3.5 h-3.5" />
+                  {formatTime()}
+                </div>
+              )}
+            </div>
+            <FavoriteButton
+              favoriteData={{
+                favorite_type: 'match',
+                item_id: match.id,
+                item_data: favoriteData,
+              }}
+              size="sm"
+            />
+          </div>
+
+          {/* League */}
+          <div className="text-[11px] text-[var(--mute)] mb-3 truncate font-medium">
+            {translateLeague(match.league_name, translateEnabled)}
+          </div>
+
+          {/* Teams & Score */}
+          <Link href={`/match/${match.id}`} className="block">
+            <div className="space-y-2.5 mb-4 cursor-pointer hover:opacity-80 transition-opacity active:opacity-60">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[var(--canvas-soft)] flex items-center justify-center flex-shrink-0">
+                    {match.team1.logo ? (
+                      <img src={match.team1.logo} alt="" className="w-5 h-5" />
+                    ) : (
+                      <span className="text-xs font-bold text-[var(--mute)]">{match.team1.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="text-sm font-semibold text-[var(--ink)] truncate">
+                    {translateTeam(match.team1.name, translateEnabled)}
+                  </span>
+                </div>
+                {match.score && (
+                  <span className="text-xl font-[800] text-[var(--ink)] ml-2 flex-shrink-0">
+                    {match.score.team1}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[var(--canvas-soft)] flex items-center justify-center flex-shrink-0">
+                    {match.team2.logo ? (
+                      <img src={match.team2.logo} alt="" className="w-5 h-5" />
+                    ) : (
+                      <span className="text-xs font-bold text-[var(--mute)]">{match.team2.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="text-sm font-semibold text-[var(--ink)] truncate">
+                    {translateTeam(match.team2.name, translateEnabled)}
+                  </span>
+                </div>
+                {match.score && (
+                  <span className="text-xl font-[800] text-[var(--ink)] ml-2 flex-shrink-0">
+                    {match.score.team2}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Link>
+
+          {/* Odds */}
+          {hasValidOdds ? (
+            <div className="grid grid-cols-3 gap-2">
+              <OddButton label="П1" value={displayOdds.p1} outcome="home" matchData={betSlipMatchData} changed={oddsChanged} />
+              {displayOdds.x > 0 && (
+                <OddButton label="X" value={displayOdds.x} outcome="draw" matchData={betSlipMatchData} changed={oddsChanged} />
+              )}
+              <OddButton label="П2" value={displayOdds.p2} outcome="away" matchData={betSlipMatchData} changed={oddsChanged} />
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-text-secondary text-sm">
-              <Clock className="w-4 h-4" />
-              {formatTime()}
+            <div className="py-4 text-center text-sm text-[var(--mute)]">
+              Коэффициенты недоступны
             </div>
           )}
-        </div>
-        <FavoriteButton
-          favoriteData={{
-            favorite_type: 'match',
-            item_id: match.id,
-            item_data: favoriteData,
-          }}
-          size="sm"
-        />
-      </div>
-
-      {/* Лига */}
-      <div className="text-xs text-text-secondary mb-3 truncate">
-        {translateLeague(match.league_name, translateEnabled)}
-      </div>
-
-      {/* Команды и счет */}
-      <Link href={`/match/${match.id}`} className="block">
-        <div className="space-y-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-card-hover flex items-center justify-center flex-shrink-0">
-                {match.team1.logo ? (
-                  <img src={match.team1.logo} alt={match.team1.name} className="w-6 h-6" />
-                ) : (
-                  <span className="text-xs font-bold text-text-secondary">
-                    {match.team1.name.charAt(0)}
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-medium text-foreground truncate">
-                {translateTeam(match.team1.name, translateEnabled)}
-              </span>
-            </div>
-            {match.score && (
-              <span className="text-lg font-bold text-foreground ml-2">
-                {match.score.team1}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-card-hover flex items-center justify-center flex-shrink-0">
-                {match.team2.logo ? (
-                  <img src={match.team2.logo} alt={match.team2.name} className="w-6 h-6" />
-                ) : (
-                  <span className="text-xs font-bold text-text-secondary">
-                    {match.team2.name.charAt(0)}
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-medium text-foreground truncate">
-                {translateTeam(match.team2.name, translateEnabled)}
-              </span>
-            </div>
-            {match.score && (
-              <span className="text-lg font-bold text-foreground ml-2">
-                {match.score.team2}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-
-      {/* Коэффициенты */}
-      {hasValidOdds ? (
-        <div className="grid grid-cols-3 gap-2">
-          <OddButton
-            label="П1"
-            value={displayOdds.p1}
-            outcome="home"
-            matchData={betSlipMatchData}
-          />
-
-          {displayOdds.x > 0 && (
-            <OddButton
-              label="X"
-              value={displayOdds.x}
-              outcome="draw"
-              matchData={betSlipMatchData}
-            />
-          )}
-
-          <OddButton
-            label="П2"
-            value={displayOdds.p2}
-            outcome="away"
-            matchData={betSlipMatchData}
-          />
-        </div>
-      ) : (
-        <div className="py-4 text-center text-sm text-text-secondary">
-          Коэффициенты недоступны
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </motion.div>
   )
 })

@@ -2,23 +2,28 @@ import { apiClient } from './axios'
 import {
   GetMatchesParams,
   ApiResponseOfApiSaGame,
-  ApiSaGame,
   ApiResponseOfLiveOdds,
   ApiResponseOfLiveOddsUpdates,
+  ApiResponseOfApiSaGameFull,
+  ApiSaGameFull,
+  ApiSaBookmakerOdds,
+  ApiGameGlicko,
+  ApiMatchProfit,
   getClientTimeZone
 } from '../types/api'
 import { Match } from '../types'
+import { transformApiMatch, extractOdds } from './transformers'
 
 // Rate limiter для предотвращения 429 ошибок
 class RateLimiter {
   private queue: Array<() => Promise<any>> = []
   private processing = false
   private lastRequestTime = 0
-  private minDelay = 500 // минимальная задержка между запросами в мс (увеличено до 500мс)
+  private minDelay = 500
   private requestCount = 0
   private windowStart = Date.now()
-  private maxRequestsPerWindow = 10 // максимум 10 запросов
-  private windowDuration = 5000 // за 5 секунд
+  private maxRequestsPerWindow = 10
+  private windowDuration = 5000
 
   async add<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
@@ -42,13 +47,11 @@ class RateLimiter {
     while (this.queue.length > 0) {
       const now = Date.now()
 
-      // Сброс счетчика окна если прошло достаточно времени
       if (now - this.windowStart >= this.windowDuration) {
         this.requestCount = 0
         this.windowStart = now
       }
 
-      // Если достигли лимита запросов в окне, ждем до конца окна
       if (this.requestCount >= this.maxRequestsPerWindow) {
         const waitTime = this.windowDuration - (now - this.windowStart)
         if (waitTime > 0) {
@@ -58,7 +61,6 @@ class RateLimiter {
         this.windowStart = Date.now()
       }
 
-      // Проверяем минимальную задержку между запросами
       const timeSinceLastRequest = now - this.lastRequestTime
       if (timeSinceLastRequest < this.minDelay) {
         await new Promise(resolve => setTimeout(resolve, this.minDelay - timeSinceLastRequest))
@@ -77,138 +79,6 @@ class RateLimiter {
 }
 
 const rateLimiter = new RateLimiter()
-
-/**
- * Трансформация данных из API в формат приложения
- */
-function transformApiMatch(apiMatch: ApiSaGame): Match {
-  // Определяем вид спорта из названия лиги
-  const leagueName = apiMatch.season?.league?.name || 'Unknown League'
-  const sportType = determineSportType(leagueName)
-
-  // Определяем, идет ли матч Live
-  // Согласно документации API:
-  // Live статусы: 3 (1-й тайм), 4 (перерыв), 5 (2-й тайм), 6 (доп. время), 7 (пенальти), 11 (перерыв в доп. времени), 18 (победа без игры), 19 (матч в процессе)
-  const statusNum = parseInt(apiMatch.status)
-  const isLive = [3, 4, 5, 6, 7, 11, 18, 19].includes(statusNum)
-
-  // Извлекаем коэффициенты 1X2
-  const odds = extractOdds(apiMatch.odds)
-
-  // Парсим минуту матча
-  const elapsed = apiMatch.elapsed ? parseInt(apiMatch.elapsed) : undefined
-
-  return {
-    id: apiMatch.id,
-    sport_type: sportType,
-    league_name: leagueName,
-    team1: {
-      id: apiMatch.homeTeam?.id || '0',
-      name: apiMatch.homeTeam?.name || 'Team 1',
-      logo: apiMatch.homeTeam?.logoUrl || undefined,
-    },
-    team2: {
-      id: apiMatch.awayTeam?.id || '0',
-      name: apiMatch.awayTeam?.name || 'Team 2',
-      logo: apiMatch.awayTeam?.logoUrl || undefined,
-    },
-    start_time: apiMatch.date || new Date().toISOString(),
-    is_live: isLive,
-    elapsed: elapsed,
-    score: (apiMatch.homeResult !== undefined && apiMatch.awayResult !== undefined) ? {
-      team1: parseInt(apiMatch.homeResult) || 0,
-      team2: parseInt(apiMatch.awayResult) || 0,
-    } : undefined,
-    odds: odds,
-    is_favorite: false,
-  }
-}
-
-/**
- * Определение вида спорта по названию лиги
- */
-function determineSportType(leagueName: string): string {
-  const name = leagueName.toLowerCase()
-
-  if (name.includes('hockey') || name.includes('nhl') || name.includes('khl')) {
-    return 'hockey'
-  }
-  if (name.includes('tennis') || name.includes('atp') || name.includes('wta')) {
-    return 'tennis'
-  }
-  if (name.includes('basketball') || name.includes('nba') || name.includes('euroleague')) {
-    return 'basketball'
-  }
-  if (name.includes('volleyball')) {
-    return 'volleyball'
-  }
-  if (name.includes('esport') || name.includes('dota') || name.includes('cs:go') || name.includes('lol')) {
-    return 'esports'
-  }
-
-  // По умолчанию футбол
-  return 'football'
-}
-
-/**
- * Извлечение коэффициентов 1X2 из массива ставок
- */
-function extractOdds(bets: any[]): { p1: number; x: number; p2: number } {
-  console.log('extractOdds called with bets:', bets)
-
-  if (!bets || bets.length === 0) {
-    console.log('No bets data')
-    return { p1: 0, x: 0, p2: 0 }
-  }
-
-  // Ищем рынок "Fulltime Result", "1X2" или "Match Winner"
-  const mainMarket = bets.find(bet =>
-    bet.marketName === 'Fulltime Result' ||
-    bet.marketName === '1X2' ||
-    bet.marketName === 'Match Winner' ||
-    bet.marketId === '1'
-  )
-
-  console.log('Main market found:', mainMarket)
-
-  if (!mainMarket || !mainMarket.odds) {
-    console.log('Main market not found, trying first market with odds')
-    // Если не нашли, пробуем взять первый рынок с коэффициентами
-    const firstMarketWithOdds = bets.find(bet => bet.odds && bet.odds.length >= 2)
-    console.log('First market with odds:', firstMarketWithOdds)
-
-    if (!firstMarketWithOdds) {
-      return { p1: 0, x: 0, p2: 0 }
-    }
-
-    // Используем первый рынок
-    const odds = { p1: 0, x: 0, p2: 0 }
-    if (firstMarketWithOdds.odds[0]) odds.p1 = parseFloat(firstMarketWithOdds.odds[0].value) || 0
-    if (firstMarketWithOdds.odds[1]) odds.x = parseFloat(firstMarketWithOdds.odds[1].value) || 0
-    if (firstMarketWithOdds.odds[2]) odds.p2 = parseFloat(firstMarketWithOdds.odds[2].value) || 0
-
-    console.log('Extracted odds from first market:', odds)
-    return odds
-  }
-
-  const odds = { p1: 0, x: 0, p2: 0 }
-
-  mainMarket.odds.forEach((price: any) => {
-    const value = parseFloat(price.value) || 0
-    const name = price.name?.toLowerCase() || ''
-
-    if (name === '1' || name === 'home') {
-      odds.p1 = value
-    } else if (name === 'x' || name === 'draw') {
-      odds.x = value
-    } else if (name === '2' || name === 'away') {
-      odds.p2 = value
-    }
-  })
-
-  console.log('Extracted odds from main market:', odds)
-  return odds
-}
 
 /**
  * Получение списка матчей с API sstats.net
@@ -308,6 +178,118 @@ export async function fetchUpcomingMatches(): Promise<Match[]> {
     Upcoming: true,
   })
   return result.matches
+}
+
+/**
+ * Получение ОДНОГО матча с ПОЛНЫМИ данными (статистика, составы, события, игроки)
+ * Использует /Games/{id} — самый насыщенный эндпоинт API
+ * В одном запросе возвращает: матч + статистика + составы + события + игроки + стадион
+ */
+export async function fetchFullMatchById(gameId: string): Promise<ApiSaGameFull | null> {
+  try {
+    const response = await apiClient.get<ApiResponseOfApiSaGameFull>(`/Games/${gameId}`)
+
+    if (response.data.status !== 'OK' || !response.data.data) {
+      return null
+    }
+
+    return response.data.data
+  } catch (error) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } }
+      if (axiosError.response?.status === 404) {
+        return null
+      }
+    }
+    console.error(`Error fetching full match ${gameId}:`, error)
+    throw error
+  }
+}
+
+/**
+ * Получение одного матча по ID (короткая форма, для совместимости)
+ */
+export async function fetchMatchById(gameId: string): Promise<Match | null> {
+  try {
+    const response = await apiClient.get<{ status: string; data: any }>(`/Games/${gameId}`)
+
+    if (response.data.status !== 'OK' || !response.data.data) {
+      return null
+    }
+
+    // /Games/{id} может вернуть ApiSaGameFull (с вложенным game) или чистый ApiSaGame
+    const data = response.data.data
+    const gameData = data.game || data
+    return transformApiMatch(gameData)
+  } catch (error) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } }
+      if (axiosError.response?.status === 404) {
+        return null
+      }
+    }
+    console.error(`Error fetching match ${gameId}:`, error)
+    throw error
+  }
+}
+
+/**
+ * Получение ВСЕХ доматчевых коэффициентов от ВСЕХ букмекеров
+ * /Odds/{gameId} — все рынки, все букмекеры
+ */
+export async function fetchPrematchOdds(gameId: string | number): Promise<ApiSaBookmakerOdds[]> {
+  try {
+    const response = await apiClient.get<{ status: string; data: ApiSaBookmakerOdds[] }>(`/Odds/${gameId}`)
+
+    if (response.data.status !== 'OK' || !response.data.data) {
+      return []
+    }
+
+    return response.data.data
+  } catch (error) {
+    console.error(`Error fetching prematch odds for ${gameId}:`, error)
+    return []
+  }
+}
+
+/**
+ * Получение Glicko-2 рейтингов, xG и вероятностей исхода
+ * /Games/glicko/{id}
+ */
+export async function fetchGlicko(gameId: string | number): Promise<ApiGameGlicko | null> {
+  try {
+    const response = await apiClient.get<{ status: string; data: ApiGameGlicko }>(`/Games/glicko/${gameId}`)
+
+    if (response.data.status !== 'OK' || !response.data.data) {
+      return null
+    }
+
+    return response.data.data
+  } catch (error) {
+    console.error(`Error fetching glicko for ${gameId}:`, error)
+    return null
+  }
+}
+
+/**
+ * Получение анализа прибыльности по всем рынкам
+ * /Games/profits?gameId={id}
+ */
+export async function fetchProfits(gameId: string | number): Promise<ApiMatchProfit | null> {
+  try {
+    const response = await apiClient.get<{ status: string; data: ApiMatchProfit }>(`/Games/profits`, {
+      params: { gameId }
+    })
+
+    if (response.data.status !== 'OK' || !response.data.data) {
+      return null
+    }
+
+    return response.data.data
+  } catch (error) {
+    console.error(`Error fetching profits for ${gameId}:`, error)
+    return null
+  }
 }
 
 /**

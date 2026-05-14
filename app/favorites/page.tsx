@@ -10,6 +10,7 @@ import { ru } from 'date-fns/locale'
 import Link from 'next/link'
 import { translateTeam, translateLeague } from '@/lib/translations'
 import { useTranslation } from '@/lib/contexts/translation-context'
+import { motion } from 'framer-motion'
 
 export default function FavoritesPage() {
   const { isAuthenticated } = useAuth()
@@ -57,11 +58,11 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Заголовок */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Избранное</h1>
-          <p className="text-text-secondary">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Избранное</h1>
+          <p className="text-sm sm:text-base text-text-secondary">
             {favorites.length === 0
               ? 'У вас пока нет избранных элементов'
               : `Всего: ${favorites.length}`
@@ -70,12 +71,12 @@ export default function FavoritesPage() {
         </div>
 
         {/* Фильтры */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
           <button
             onClick={() => setSelectedType('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all whitespace-nowrap touch-manipulation ${
               selectedType === 'all'
-                ? 'bg-accent text-black'
+                ? 'bg-accent text-black shadow-glow'
                 : 'bg-card-bg text-foreground hover:bg-card-hover'
             }`}
           >
@@ -83,9 +84,9 @@ export default function FavoritesPage() {
           </button>
           <button
             onClick={() => setSelectedType('match')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all whitespace-nowrap touch-manipulation ${
               selectedType === 'match'
-                ? 'bg-accent text-black'
+                ? 'bg-accent text-black shadow-glow'
                 : 'bg-card-bg text-foreground hover:bg-card-hover'
             }`}
           >
@@ -93,9 +94,9 @@ export default function FavoritesPage() {
           </button>
           <button
             onClick={() => setSelectedType('team')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all whitespace-nowrap touch-manipulation ${
               selectedType === 'team'
-                ? 'bg-accent text-black'
+                ? 'bg-accent text-black shadow-glow'
                 : 'bg-card-bg text-foreground hover:bg-card-hover'
             }`}
           >
@@ -103,9 +104,9 @@ export default function FavoritesPage() {
           </button>
           <button
             onClick={() => setSelectedType('league')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all whitespace-nowrap touch-manipulation ${
               selectedType === 'league'
-                ? 'bg-accent text-black'
+                ? 'bg-accent text-black shadow-glow'
                 : 'bg-card-bg text-foreground hover:bg-card-hover'
             }`}
           >
@@ -115,9 +116,9 @@ export default function FavoritesPage() {
 
         {/* Список избранного */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-card-bg rounded-xl p-4 border border-border animate-pulse">
+              <div key={i} className="bg-card-bg rounded-xl p-3 sm:p-4 border border-border animate-shimmer">
                 <div className="h-4 bg-card-hover rounded w-1/3 mb-3"></div>
                 <div className="h-6 bg-card-hover rounded w-2/3 mb-2"></div>
                 <div className="h-4 bg-card-hover rounded w-1/2"></div>
@@ -127,7 +128,7 @@ export default function FavoritesPage() {
         ) : filteredFavorites.length === 0 ? (
           <div className="text-center py-12">
             <Star className="w-12 h-12 text-text-secondary mx-auto mb-4" />
-            <p className="text-text-secondary">
+            <p className="text-sm sm:text-base text-text-secondary">
               {selectedType === 'all'
                 ? 'У вас пока нет избранных элементов'
                 : `Нет избранных ${selectedType === 'match' ? 'матчей' : selectedType === 'team' ? 'команд' : 'лиг'}`
@@ -135,14 +136,16 @@ export default function FavoritesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {filteredFavorites.map((favorite) => {
               const data = favorite.item_data as any
 
               return (
-                <div
+                <motion.div
                   key={favorite.id}
-                  className="bg-card-bg rounded-xl p-4 border border-border hover:bg-card-hover transition-all"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card-bg rounded-xl p-3 sm:p-4 border border-border hover:bg-card-hover transition-all"
                 >
                   {/* Тип и кнопка удаления */}
                   <div className="flex items-center justify-between mb-3">
@@ -241,7 +244,7 @@ export default function FavoritesPage() {
                       </div>
                     </>
                   )}
-                </div>
+                </motion.div>
               )
             })}
           </div>
